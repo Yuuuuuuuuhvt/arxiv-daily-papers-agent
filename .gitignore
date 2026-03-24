@@ -9,12 +9,7 @@ venv/
 *.bak
 .pytest_cache/
 
-# Runtime data (managed separately or via data submodule)
-data/pdfs/
-data/reports/
-data/weekly/
-data/papers_index.json
-data/papers_index.json.bak
+# Runtime data is managed via data submodule (embodied-daily-papers)
 
 # Test scripts
 _test_*.py
