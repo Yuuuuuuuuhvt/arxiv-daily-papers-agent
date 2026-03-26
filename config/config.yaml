@@ -104,13 +104,47 @@ models:
     temperature: 0.2
     batch_size: 1
 
+research_focus:
+  description: |
+    Our current research focus is on World Models assisting Embodied AI
+    downstream tasks (manipulation, locomotion, planning). Specifically:
+    - World model-based policy learning / planning for robot control
+    - VLA (Vision-Language-Action) models and architectures
+    - World models for physical understanding and sim-to-real
+    - Diffusion policies / action generation with world model priors
+    Papers about pure navigation, traffic signs, weather classification,
+    or autonomous driving perception without world model / VLA components
+    are NOT aligned with our focus.
+  high_keywords:
+    - "world model"
+    - "VLA"
+    - "vision-language-action"
+    - "action generation"
+    - "diffusion policy"
+    - "robot policy"
+    - "manipulation"
+    - "locomotion"
+    - "sim-to-real"
+    - "model-based reinforcement learning"
+    - "latent dynamics"
+    - "JEPA"
+  low_keywords:
+    - "navigation"
+    - "traffic sign"
+    - "weather classification"
+    - "V2X"
+    - "lane detection"
+    - "object detection"
+    - "pedestrian"
+
 scoring:
   weights:
-    novelty: 0.25
-    impact: 0.30
-    reproducibility: 0.15
-    affiliation: 0.15
-    direction_match: 0.15
+    novelty: 0.20
+    impact: 0.25
+    reproducibility: 0.10
+    affiliation: 0.10
+    direction_match: 0.10
+    focus_relevance: 0.25
   hot_threshold: 4.0
 
 email:

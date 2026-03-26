@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 
-from .config import load_affiliations, load_prompt
+from .config import load_affiliations, load_config, load_prompt
 from .llm_client import call_llm
 from .models import AnalysisResult, ArxivPaper
 
@@ -19,13 +19,16 @@ def _compute_weighted_score(analysis: AnalysisResult, config: dict) -> float:
     dir_score = DIRECTION_MATCH_SCORES.get(
         "multiple" if analysis.direction == "multiple" else "exact", 4
     )
-    return (
+    score = (
         analysis.novelty_score * weights["novelty"]
         + analysis.impact_score * weights["impact"]
         + analysis.reproducibility_score * weights["reproducibility"]
         + aff_score * weights["affiliation"]
         + dir_score * weights["direction_match"]
     )
+    if "focus_relevance" in weights:
+        score += analysis.focus_relevance_score * weights["focus_relevance"]
+    return score
 
 
 def _assign_tags(analysis: AnalysisResult, hot_threshold: float) -> list[str]:
@@ -65,6 +68,7 @@ def _dict_to_analysis(data: dict) -> AnalysisResult:
         novelty_score=int(data.get("novelty_score", 3)),
         impact_score=int(data.get("impact_score", 3)),
         reproducibility_score=int(data.get("reproducibility_score", 3)),
+        focus_relevance_score=int(data.get("focus_relevance_score", 3)),
         has_code=bool(data.get("has_code", False)),
         code_url=data.get("code_url"),
         has_dataset=bool(data.get("has_dataset", False)),
@@ -82,6 +86,8 @@ async def analyze_paper(
 ) -> AnalysisResult:
     system_prompt = load_prompt("deep_analysis.txt")
     affiliations = load_affiliations()
+    focus_config = load_config().get("research_focus", {})
+    focus_desc = focus_config.get("description", "").strip()
 
     user_msg = (
         f"## Paper to Analyze\n\n"
@@ -94,8 +100,15 @@ async def analyze_paper(
         f"**PDF URL**: {paper.pdf_url}\n\n"
         f"## Affiliation Reference\n"
         f"{json.dumps(affiliations, ensure_ascii=False, indent=2)}\n\n"
-        f"Produce the analysis JSON."
     )
+    if focus_desc:
+        user_msg += (
+            f"## Reader's Research Focus\n"
+            f"{focus_desc}\n\n"
+            f"Score `focus_relevance_score` based on how closely this paper "
+            f"aligns with the reader's focus described above.\n\n"
+        )
+    user_msg += "Produce the analysis JSON."
 
     try:
         raw = await call_llm(

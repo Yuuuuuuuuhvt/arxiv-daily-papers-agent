@@ -46,6 +46,7 @@ class AnalysisResult:
     novelty_score: int = 3
     impact_score: int = 3
     reproducibility_score: int = 3
+    focus_relevance_score: int = 3
     has_code: bool = False
     code_url: Optional[str] = None
     has_dataset: bool = False
@@ -76,6 +77,7 @@ def paper_to_index_entry(paper: ArxivPaper, analysis: AnalysisResult) -> dict:
             "novelty": analysis.novelty_score,
             "impact": analysis.impact_score,
             "reproducibility": analysis.reproducibility_score,
+            "focus_relevance": analysis.focus_relevance_score,
             "weighted": round(analysis.weighted_score, 2),
         },
         "has_code": analysis.has_code,

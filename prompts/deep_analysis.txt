@@ -19,6 +19,7 @@ For each paper, produce a JSON object with the following fields:
   "novelty_score": 1-5,
   "impact_score": 1-5,
   "reproducibility_score": 1-5,
+  "focus_relevance_score": 1-5,
 
   "has_code": true/false,
   "code_url": "URL or null",
@@ -72,5 +73,12 @@ Reproducibility (1-5):
   3 = Sufficient detail to reimplement with effort
   2 = Missing key details or proprietary components
   1 = Cannot be reproduced without authors' help
+
+Focus Relevance (1-5):
+  5 = Directly addresses the reader's core research focus
+  4 = Closely related, shares key methods or goals
+  3 = Tangentially related, in the same broad area
+  2 = Same domain but different sub-problem
+  1 = Unrelated to the reader's stated focus
 
 Respond with ONLY the JSON object. No markdown fences, no extra text.
