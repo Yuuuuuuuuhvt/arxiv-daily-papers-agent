@@ -16,8 +16,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           submodules: recursive
           token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Prepare git state
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          git config user.name "arxiv-agent[bot]"
+          git config user.email "bot@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git"
+          git fetch origin main
+          git checkout -B main origin/main
+
+          git -C data config user.name "arxiv-agent[bot]"
+          git -C data config user.email "bot@users.noreply.github.com"
+          git -C data remote set-url origin "https://x-access-token:${PAT_TOKEN}@github.com/Yuuuuuuuuhvt/embodied-daily-papers.git"
+          git -C data fetch origin main
+          git -C data checkout -B main origin/main
 
       - uses: actions/setup-python@v5
         with:
@@ -31,24 +48,28 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           QQ_MAIL_AUTH_CODE: ${{ secrets.QQ_MAIL_AUTH_CODE }}
           QQ_MAIL_ADDRESS: ${{ secrets.QQ_MAIL_ADDRESS }}
+          SKIP_GIT_PUSH: "1"
         run: python -m src.main
 
       - name: Commit and push data submodule
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          cd data
-          git remote set-url origin "https://x-access-token:${PAT_TOKEN}@github.com/Yuuuuuuuuhvt/embodied-daily-papers.git"
-          git checkout main
           git config user.name "arxiv-agent[bot]"
           git config user.email "bot@users.noreply.github.com"
-          git add -A
-          git diff --cached --quiet || git commit -m "daily update: $(date -u +%Y-%m-%d)"
-          git push
-          cd ..
-          git config user.name "arxiv-agent[bot]"
-          git config user.email "bot@users.noreply.github.com"
-          git pull --rebase origin main
+          git remote set-url origin "https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git"
+          git -C data remote set-url origin "https://x-access-token:${PAT_TOKEN}@github.com/Yuuuuuuuuhvt/embodied-daily-papers.git"
+
+          git -C data add -A
+          if ! git -C data diff --cached --quiet; then
+            git -C data commit -m "daily update: $(date -u +%Y-%m-%d)"
+            git -C data pull --rebase origin main
+            git -C data push origin HEAD:main
+          fi
+
           git add data
-          git diff --cached --quiet || git commit -m "update data submodule pointer"
-          git push
+          if ! git diff --cached --quiet; then
+            git commit -m "update data submodule pointer"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi

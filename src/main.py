@@ -167,10 +167,13 @@ async def run_pipeline() -> None:
     else:
         logger.info("Email skipped: QQ_MAIL_ADDRESS or QQ_MAIL_AUTH_CODE not set")
 
-    # Stage 7: Git push (only in CI)
-    if os.environ.get("GITHUB_ACTIONS"):
+    # Stage 7: Git push (only in CI unless delegated to workflow)
+    skip_git_push = os.environ.get("SKIP_GIT_PUSH", "").strip().lower() in ("1", "true", "yes")
+    if os.environ.get("GITHUB_ACTIONS") and not skip_git_push:
         logger.info("=== Stage 7: Git push ===")
         commit_and_push_data(date_str)
+    elif os.environ.get("GITHUB_ACTIONS"):
+        logger.info("Git push skipped: SKIP_GIT_PUSH=1")
     else:
         logger.info("Not in CI, skipping git push")
 
